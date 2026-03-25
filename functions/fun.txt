@@ -1,0 +1,54 @@
+
+// annonymous functions
+// Store an anonymous function in a variable
+// greet1 = func(name string) string {
+//     return "Welcome, " + name + "!"
+// }
+
+// You can reassign it — functions are first-class values in Go
+// greet = func(name string) string {
+//     return "Goodbye, " + name + "!"
+// }
+func filterStudents(students []Student, test func(Student) bool) []Student {
+    var result []Student
+    for _, s := range students {
+        if test(s) {
+            result = append(result, s)
+        }
+    }
+    return result
+}
+// students := []Student{
+// 		{"Amara Obi",    "A", 92},
+// 		{"Chidi Nwosu",  "B", 78},
+// 		{"Fatima Bello", "A", 95},
+// 		{"Emeka Eze",    "C", 61},
+// 		{"Ngozi Adeyemi","F", 38},
+// }
+
+// 	/ Pass an anonymous function as the filter
+// topStudents := filterStudents(students, func(s Student) bool {
+//     return s.Score >= 80
+// })
+
+// for _, s := range topStudents {
+//     fmt.Println(s.Name, s.Score)
+// }
+
+
+
+// func(){
+//     fmt.Println("I run immediately!")
+// }()
+
+// With arguments
+func(name string, score int) {
+    fmt.Printf("%s scored %d\n", name, score)
+}("Amara Obi", 92)
+
+// With a return value — capture it in a variable
+result := func(a, b int) int {
+    return a + b
+}(40, 55)
+
+
