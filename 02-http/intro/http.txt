@@ -1,0 +1,216 @@
+net/http is Go's built-in package for building HTTP servers and making HTTP requests. 
+Coming from TypeScript, think of it as Express.js + fetch combined — no install needed,
+it's in the standard library.
+
+func handler(w http.ResponseWriter, r *http.Request) {
+    // HTTP method
+    fmt.Println(r.Method) // GET, POST, etc.
+
+    // URL and path
+    fmt.Println(r.URL.Path)            // /users
+    fmt.Println(r.URL.Query().Get("id")) // ?id=5 → "5"
+
+    // headers
+    fmt.Println(r.Header.Get("Content-Type"))
+
+    // body (for POST requests)
+    // covered below
+}
+
+// handling diff http methods
+func userHandler(w http.ResponseWriter, r *http.Request) {
+    switch r.Method {
+    case http.MethodGet:
+        fmt.Fprintln(w, "getting users...")
+
+    case http.MethodPost:
+        fmt.Fprintln(w, "creating user...")
+
+    case http.MethodDelete:
+        fmt.Fprintln(w, "deleting user...")
+
+    default:
+        // like sending a 405 in Express
+        http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+    }
+}
+
+// sending json Response
+package main
+
+import (
+    "encoding/json"
+    "net/http"
+)
+
+type User struct {
+    ID       int    `json:"id"`
+    Username string `json:"username"`
+    State    string `json:"state"`
+}
+
+func getUserHandler(w http.ResponseWriter, r *http.Request) {
+    user := User{
+        ID:       1,
+        Username: "emeka",
+        State:    "enugu",
+    }
+
+    // tell the client to expect JSON — like res.json() in Express
+    w.Header().Set("Content-Type", "application/json")
+
+    // encode the struct as JSON and write it to the response
+    json.NewEncoder(w).Encode(user)
+}
+
+func main() {
+    http.HandleFunc("/user", getUserHandler)
+    http.ListenAndServe(":8080", nil)
+}
+
+Those backtick tags on the struct fields like `json:"id"` tell Go how to name the fields in JSON output — without them, ID would come out as "ID" not "id".
+
+
+// reading json from request body
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+type CreateUserInput struct {
+    Username string `json:"username"`
+    State    string `json:"state"`
+}
+
+func createUserHandler(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPost {
+        http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
+
+    var input CreateUserInput
+
+    // decode request body into the struct
+    err := json.NewDecoder(r.Body).Decode(&input)
+    if err != nil {
+        http.Error(w, "invalid request body", http.StatusBadRequest)
+        return
+    }
+    defer r.Body.Close() // always close the body when done
+
+    fmt.Printf("new user: %+v\n", input)
+    w.WriteHeader(http.StatusCreated) // 201
+    fmt.Fprintln(w, "user created successfully")
+}
+
+func main() {
+    http.HandleFunc("/users", createUserHandler)
+    http.ListenAndServe(":8080", nil)
+}
+
+// statusCode
+func handler(w http.ResponseWriter, r *http.Request) {
+    // set status code before writing body
+    w.WriteHeader(http.StatusOK)          // 200
+    w.WriteHeader(http.StatusCreated)     // 201
+    w.WriteHeader(http.StatusBadRequest)  // 400
+    w.WriteHeader(http.StatusNotFound)    // 404
+    w.WriteHeader(http.StatusInternalServerError) // 500
+
+    // shortcut — sets status + writes message in one call
+    http.Error(w, "something went wrong", http.StatusInternalServerError)
+}
+
+making http requests
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+type Post struct {
+    ID    int    `json:"id"`
+    Title string `json:"title"`
+    Body  string `json:"body"`
+}
+
+func main() {
+    // GET request
+    resp, err := http.Get("https://jsonplaceholder.typicode.com/posts/1")
+    if err != nil {
+        fmt.Println("request failed:", err)
+        return
+    }
+    defer resp.Body.Close() // always close the response body
+
+    var post Post
+    json.NewDecoder(resp.Body).Decode(&post)
+
+    fmt.Println("Title:", post.Title)
+    fmt.Println("Body:", post.Body)
+}
+
+// mini rest application
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+type User struct {
+    ID       int    `json:"id"`
+    Username string `json:"username"`
+    State    string `json:"state"`
+}
+
+// in-memory store (like a temporary database)
+var users = []User{
+    {ID: 1, Username: "emeka", State: "enugu"},
+    {ID: 2, Username: "chidi", State: "imo"},
+}
+
+func writeJSON(w http.ResponseWriter, status int, data any) {
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(status)
+    json.NewEncoder(w).Encode(data)
+}
+
+func usersHandler(w http.ResponseWriter, r *http.Request) {
+    switch r.Method {
+
+    case http.MethodGet:
+        writeJSON(w, http.StatusOK, users)
+
+    case http.MethodPost:
+        var u User
+        if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+            http.Error(w, "invalid body", http.StatusBadRequest)
+            return
+        }
+        defer r.Body.Close()
+
+        u.ID = len(users) + 1
+        users = append(users, u)
+        writeJSON(w, http.StatusCreated, u)
+
+    default:
+        http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+    }
+}
+
+func main() {
+    http.HandleFunc("/users", usersHandler)
+
+    fmt.Println("server running on :8080")
+    if err := http.ListenAndServe(":8080", nil); err != nil {
+        fmt.Println("server error:", err)
+    }
+}
+
