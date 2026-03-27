@@ -1,0 +1,15 @@
+
+// Method 1 — named fields (recommended, order doesn't matter)
+u1 := User{
+    ID:       1,
+    Username: "emeka",
+    IsActive: true,
+}
+
+// Method 2 — positional (not recommended, breaks if you reorder fields)
+u2 := User{1, "emeka", true}
+
+fmt.Println(u1.Username) // emeka
+fmt.Println(u2.ID)       // 1
+
+

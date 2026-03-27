@@ -1,0 +1,27 @@
+project-root/
+├── cmd/
+│   ├── app1/
+│   │   └── main.go
+│   └── app2/
+│       └── main.go
+├── internal/
+│   ├── app/            # Private application logic
+│   ├── handlers/       # HTTP handlers (if in internal)
+│   └── services/       # Business logic
+├── pkg/
+│   ├── logger/         # Reusable public utilities
+│   └── security/
+├── go.mod
+├── Makefile
+└── README.md
+
+
+Explanation of Key Directories 
+/cmd: Contains the main applications (executables) for the project. Each application should have its own subdirectory (e.g., /cmd/api-server) with a main.go file that imports and runs the code from the internal or pkg directories.
+/internal: This directory holds private application and library code that you do not want other projects to import. The Go compiler enforces this rule, making it a safe place for business logic and implementation details that can change without breaking external users.
+/pkg: Contains library code that is safe and intended for use by external applications. If you build a public library or a utility that might be used by other projects, place it here.
+go.mod: Defines the project as a Go module and manages its dependencies. This file is essential for Go modules.
+/configs: Stores configuration file templates or default configurations.
+/scripts: Houses various scripts for building, installing, or analyzing the project, helping to keep the root-level Makefile clean.
+/docs: Contains design documents and user documentation.
+Makefile: Automates common tasks such as build, test, run, and install
