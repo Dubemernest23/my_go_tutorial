@@ -16,9 +16,10 @@ func main() {
 		log.Fatal("Config Error")
 	}
 
-	client, _, err := db.Connect(cfg)
+	client, database, err := db.Connect(cfg)
 	if err != nil {
-		log.Fatal("Database Error")
+		log.Fatalf("Database Error: %v", err)
+		// log.Fatal("Database Error")
 	}
 
 	defer func() {
@@ -27,7 +28,7 @@ func main() {
 		}
 	}()
 
-	router := server.NewRouter()
+	router := server.NewRouter(database)
 
 	addr := fmt.Sprintf(":%s", cfg.ServerPort)
 
