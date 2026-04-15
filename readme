@@ -1,0 +1,209 @@
+# My Go Tutorial Workspace
+
+This repository is a personal Go learning workspace. It contains small language exercises, `net/http` practice projects, and a few larger API experiments built with Gin, Chi, MongoDB, and JWT authentication.
+
+It is not a single application. Each top-level folder is meant to be run on its own.
+
+## Repo Layout
+
+- `01-intro`: small Go basics examples covering variables, functions, arrays and slices, maps, structs, imports, `defer`, error-return style, randomness, and a small module layout example.
+- `02-http`: beginner `net/http` exercises for routing, query params, JSON responses, HTTP clients, and external API calls.
+- `project_struct_in_go`: a standalone dependency injection example using a `UserService` with both a real and fake database implementation.
+- `go_notes_CRUD`: a Gin + MongoDB notes API with health checks and CRUD endpoints for a `notes` collection.
+- `auth_project`: a Gin + MongoDB authentication API with registration, login, JWT creation, auth middleware, and role-based route protection.
+- `chi_api`: a Chi router playground showing middleware, CORS, throttling, timeouts, and the built-in profiler.
+- `chi_auth`: a small Chi + JWT example with a public route and a protected `/admin` route.
+
+## Prerequisites
+
+- Go `1.26.1` or newer, matching the module files in this repo
+- MongoDB for `go_notes_CRUD` and `auth_project`
+- Internet access if you want to run the examples that call external APIs:
+  - `02-http/http_get` uses `jsonplaceholder.typicode.com`
+  - `02-http/external_api` uses `catfact.ninja`
+
+## Important Note About This Repo
+
+There is no single root module for the whole repository. Work inside each project folder separately.
+
+## Running The Examples
+
+### 1. Go Basics
+
+Run any lesson folder inside `01-intro`:
+
+```bash
+cd 01-intro
+go run ./variables
+go run ./functions
+go run ./arrays_and_slice
+go run ./struct
+```
+
+Topics covered in this section:
+
+- variables and basic syntax
+- arrays, slices, and maps
+- functions and return values
+- structs and custom types
+- package imports
+- `defer`
+- error-return patterns
+- a small module layout under `01-intro/module`
+
+Note: `01-intro/excercise` imports `golang.org/x/tour/wc`, so the first run may download that dependency.
+
+### 2. HTTP Basics With The Standard Library
+
+```bash
+cd 02-http
+go run ./intro
+go run ./multipleRoute
+go run ./json_encode
+go run ./external_api
+```
+
+These examples cover:
+
+- simple route registration with `http.HandleFunc`
+- query parameters
+- JSON encoding and decoding
+- calling external APIs
+- basic status-code handling
+
+Note: several folders in `02-http` listen on `:8080`, so run one at a time.
+
+### 3. Project Structure And Dependency Injection Example
+
+```bash
+cd project_struct_in_go
+go run main.go
+```
+
+This example shows:
+
+- interface-based design
+- dependency injection
+- swapping a real implementation for a fake one
+- basic `context.Context` usage
+
+### 4. Notes CRUD API
+
+Create a `.env` file inside `go_notes_CRUD`:
+
+```env
+MONGOURI=mongodb://localhost:27017
+MONGO_DB_NAME=notes_api
+PORT=8080
+```
+
+Run it:
+
+```bash
+cd go_notes_CRUD
+go run ./cmd/api
+```
+
+Main routes:
+
+- `GET /health`
+- `POST /notes`
+- `GET /notes`
+- `GET /notes/:id`
+- `PUT /notes/:id`
+- `DELETE /notes/:id`
+
+Notes:
+
+- uses Gin and MongoDB
+- stores documents in the `notes` collection
+- request fields are `title`, `content`, and `pinned`
+
+### 5. JWT Auth API
+
+Create a `.env` file inside `auth_project`:
+
+```env
+MONGOURI=mongodb://localhost:27017
+MONGO_DB_NAME=auth_project
+JWT_SECRET=replace-this-with-a-strong-secret
+```
+
+Run it:
+
+```bash
+cd auth_project
+go run ./cmd/api
+```
+
+Main routes:
+
+- `GET /health`
+- `POST /u/register`
+- `POST /u/login`
+- `GET /api/files` - protected
+- `GET /api/products` - protected
+- `GET /api/admin/dashboard` - admin only
+
+Notes:
+
+- the server listens on `:5020`
+- users are stored in the `users` collection
+- newly registered users are created with the role `user`
+- the admin route only works for a user whose stored role is `admin`
+
+### 6. Chi Router Playground
+
+```bash
+cd chi_api
+go run .
+```
+
+What it demonstrates:
+
+- Chi middleware stacking
+- request logging and recovery
+- throttling and timeouts
+- CORS configuration
+- profiler endpoints mounted under `/debug/*`
+
+Default routes:
+
+- `GET /`
+- `POST /`
+- `GET /long`
+
+The server listens on `:3000`.
+
+### 7. Chi JWT Auth Demo
+
+```bash
+cd chi_auth
+go run .
+```
+
+What it demonstrates:
+
+- `jwtauth` setup with Chi
+- a public `/` route
+- a protected `/admin` route
+
+The server listens on `:3333` and prints a sample JWT token at startup. Use that token in an `Authorization: Bearer <token>` header when calling `/admin`.
+
+## Testing
+
+For projects that are module-based, run tests from inside the project directory:
+
+```bash
+go test ./...
+```
+
+Right now the repository is mostly example code and small APIs, so many folders have no test files yet.
+
+## Suggested Learning Order
+
+- Start with `01-intro`
+- Move to `02-http`
+- Try `project_struct_in_go`
+- Build and extend `go_notes_CRUD`
+- Finish with `auth_project`, `chi_api`, and `chi_auth`

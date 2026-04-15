@@ -1,0 +1,14 @@
+r.Route("/admin", func(r chi.Router) {
+    r.Use(AdminAuthMiddleware)
+
+    // Inside admin, I want some routes with extra logging
+    r.Group(func(r chi.Router) {
+        r.Use(ExtraLoggingMiddleware)  // 
+        r.Get("/dashboard", dashboard) // admin/dashboard
+        r.Get("/logs", logs)
+    })
+
+    r.Get("/users", adminListUsers)   // only has AdminAuth
+})
+
+
